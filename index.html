@@ -93,7 +93,7 @@ a{color:#90c0f0}a:hover{color:#f0c060}
   <div>
     <div class="header-title"><span>RTSM</span> · Rupee Trade Settlement Monitor</div>
     <div class="header-sub">2×2 Scenario Framework · US Trade Pressure × Rupee Absorbability</div>
-    <div class="header-badge">Updated March 2026 · Axes revised per corrected quadrant logic</div>
+    <div class="header-badge">Updated March 2026</div>
   </div>
 </header>
 
@@ -110,7 +110,7 @@ a{color:#90c0f0}a:hover{color:#f0c060}
   <div class="legend">
     <span class="leg"><span class="leg-dot" style="background:var(--s1)"></span>S1 — High US pressure, High absorbability (Opportunity)</span>
     <span class="leg"><span class="leg-dot" style="background:var(--s2)"></span>S2 — Low US pressure, High absorbability (Feasible, low motive)</span>
-    <span class="leg"><span class="leg-dot" style="background:var(--s3)"></span>S3 — High US pressure, Low absorbability (Rupee trap risk)</span>
+    <span class="leg"><span class="leg-dot" style="background:var(--s3)"></span>S3 — High US pressure, Low absorbability (Rupee trap)</span>
     <span class="leg"><span class="leg-dot" style="background:var(--s4)"></span>S4 — Low US pressure, Low absorbability (Minimal case)</span>
   </div>
   <div class="matrix-outer">
@@ -134,7 +134,7 @@ a{color:#90c0f0}a:hover{color:#f0c060}
       <option value="all">All countries</option>
       <option value="S1">S1 — High pressure, High absorbability</option>
       <option value="S2">S2 — Low pressure, High absorbability</option>
-      <option value="S3">S3 — High pressure, Low absorbability</option>
+      <option value="S3">S3 — High pressure, Low absorbability (rupee trap)</option>
       <option value="S4">S4 — Low pressure, Low absorbability</option>
     </select>
     <label>Sort by:</label>
@@ -197,31 +197,31 @@ const qc={S1:"#639922",S2:"#378ADD",S3:"#c05050",S4:"#888780"};
 const ql={S1:"rgba(99,153,34,0.10)",S2:"rgba(55,138,221,0.10)",S3:"rgba(192,80,80,0.10)",S4:"rgba(136,135,128,0.10)"};
 
 const scMeta={
-  S1:{short:"Motive + Means",title:"High US pressure · High absorbability",tag:"Opportunity quadrant"},
-  S2:{short:"Means, low motive",title:"Low US pressure · High absorbability",tag:"Feasibility quadrant"},
-  S3:{short:"Motive, no means",title:"High US pressure · Low absorbability",tag:"Accumulation risk"},
-  S4:{short:"Neither",title:"Low US pressure · Low absorbability",tag:"Low feasibility"}
+  S1:{short:"Motive + Means",title:"High US pressure · High favourable trade with India",tag:"Opportunity quadrant"},
+  S2:{short:"Means, low motive",title:"Low US pressure · Higher balanced trade volume with India",tag:"Feasibility quadrant"},
+  S3:{short:"Motive, no means",title:"High US pressure · Unfavourable trade balance with India",tag:"Rupee accumulation risk"},
+  S4:{short:"Neither motive nor means",title:"Low US pressure · Lower rupee absorbability",tag:"Low feasibility"}
 };
 
 const scDetails={
   S1:{
-    p1:"Countries here have both a strong incentive (US tariff or sanctions pressure drives dollar avoidance) and the operational means (India runs a trade surplus, so partner countries accumulate rupees they can actually spend back on Indian imports). This is the ideal adoption quadrant — but currently sparse at the major-economy level.",
-    p2:"Turkey is the clearest illustrative example: it faced US steel tariffs and holds a US$2.7bn India trade surplus (2024–25), giving it both motive and means. Vietnam (19% reciprocal tariff, India export surplus) and Cambodia (49% tariff, highest non-sanctions rate) also qualify. These countries have an incentive to exit dollar settlement and a workable rupee recycling pathway. The quadrant is called an 'opportunity' because no large economy yet fully occupies it — most major economies either face US pressure but have India deficits (S3) or have India surpluses but face no US pressure (S2).",
+    p1:"This is a scenario where there is an incentive for countries to adopt RTSM, as it is feasible due to the favourable trade volume. However, there are currently very few countries that face strong dollar pressure and with whom India has a favourable bilateral trade balance.",
+    p2:"Countries facing strong uncertainty due to US tariffs typically export more to India than they import, creating rupee accumulation risks, while countries with balanced trade face little incentive to exit the dollar system. Turkey is an illustrative example here; it faced US tariffs (e.g. on steel) and holds a substantial India trade surplus (US$2.7bn in 2024–25). Such countries have both a motive and a means to use rupee settlements. At present, no major country is an ideal example of this quadrant, making it an opportunity quadrant.",
     countries:"Turkey, Vietnam, Cambodia, Myanmar, Malaysia (partial), Thailand (partial), Pakistan (partial)"
   },
   S2:{
-    p1:"High rupee absorbability but low incentive to exit the dollar. India runs significant trade surpluses with these partners, meaning they receive rupees through Indian export payments and have natural channels to redeploy them on further Indian imports. However, without a strong US tariff push factor, motivation for active RTSM adoption is limited.",
-    p2:"Bangladesh (India surplus US$9.3bn, 2023–24), Sri Lanka (US$2.69bn surplus, Vostro accounts already active), Nepal, Bhutan. These are India's closest neighbours and friendly partners with established or near-ready RTSM infrastructure. The key insight is that as global dollar de-monopolisation accelerates — especially if Liberation Day-style tariff shocks become persistent — demand in this quadrant will rise even without direct US pressure on these countries. The policy lever is converting passive feasibility into active adoption: Masala bonds, rupee trade credit, deeper Vostro networks.",
-    countries:"Bangladesh, Sri Lanka, Nepal, Bhutan, Egypt, Kenya, Turkey (moving toward S1)"
+    p1:"Since there is a significant amount of balanced trade, which signifies the feasibility of the same, the demand might be low as there is no external geopolitical element pushing for alternatives.",
+    p2:"Examples: Bangladesh, Sri Lanka, Nepal, Bhutan. These are India's neighbours or friendly partners (minimal US trade risk) with large exports to India, making rupee receipts useful. In 2023–24, bilateral goods trade between India and Bangladesh was around US$12.9 billion, with India's surplus around US$9.3 billion. Sri Lanka also runs a surplus to India (US$2.69bn surplus in 2023–24) and is not US-targeted, and indeed has opened rupee Vostro accounts with India. Nepal and Bhutan, though smaller, similarly have India export surpluses and close ties to India. However, with increased trade uncertainty and de-monopolisation of the dollar, the demand might increase.",
+    countries:"Bangladesh, Sri Lanka, Nepal, Bhutan, Egypt, Kenya"
   },
   S3:{
-    p1:"High US pressure creates strong incentive to avoid dollars — but India runs a trade deficit with these partners, meaning they accumulate rupees from Indian payments (India pays in rupees for imports) that they have limited ability to deploy on Indian exports. This is the rupee accumulation trap: motivation is high, operational feasibility is structurally constrained.",
-    p2:"Russia is the paradigmatic case: India imported ~US$61.4bn from Russia in 2024 with a US$57bn deficit. Russia faces Western sanctions and has actively pushed for INR settlement, but has accumulated large rupee balances it cannot easily spend — India's export basket to Russia is limited. Iran similarly has strong sanctions-driven incentive but minimal India export absorption capacity. China also falls here despite its scale (India deficit ~US$85bn). The policy fix for this quadrant is creating rupee asset outlets: sovereign bond market access, INR-denominated trade financing, and expanding Indian export categories to these countries.",
-    countries:"Russia, Iran, China (partial), Saudi Arabia (partial)"
+    p1:"These partners may want alternatives owing to sanctions or due to trade pressure, but the rupee settlement becomes unstable if the partner cannot deploy accumulated rupee back into Indian goods or assets.",
+    p2:"Examples: Russia and other sanctioned states. Russia faces Western sanctions (high US-exposure) and in 2023 became a major source of imports for India. However India's exports to Russia are limited, so rupee usage is constrained. Iran (US oil sanctions) likewise fits: they have strong incentives to avoid the dollar but little bilateral trade to absorb rupees. India imported around US$61.4 billion from Russia in 2024, and runs a deficit of US$57 billion. This creates rupee accumulation problems on the Russian side, unless India provides reliable utilisation channels.",
+    countries:"Russia, Iran, China (partial)"
   },
   S4:{
-    p1:"The minimal-case quadrant: low US pressure means no incentive to exit the dollar, and low or negative rupee absorbability (India runs trade deficits with these partners) means RTSM settlement isn't operationally attractive. Both the demand and supply conditions for rupee adoption are absent.",
-    p2:"Saudi Arabia and South Korea are the clearest examples. Saudi Arabia maintains the petrodollar arrangement, has strong US security ties, and India runs a large energy import deficit (~US$32bn). South Korea similarly has deep US alliance ties and a balanced-to-negative India trade position. The UAE is partially in this quadrant (India import deficit, strong US financial links). These countries might transact marginally in rupees for specific narrow corridors but RTSM infrastructure investment here has very low returns and policy relevance.",
+    p1:"These countries will have very little reason to exit the US dollar system, and lack rupee usability as India doesn't have good trading relations with them. Even if India offers an RTSM infrastructure, its feasibility is extremely low.",
+    p2:"Examples: Countries like Saudi Arabia and South Korea. They have little incentive to exit the dollar system (strong US ties) and limited ability to recycle rupees (large Indian imports). Saudi Arabia maintains the petrodollar arrangement with strong US security ties, while India runs a large energy import deficit of approximately US$32bn. South Korea similarly has deep US alliance ties and a balanced-to-negative India trade position.",
     countries:"Saudi Arabia, South Korea, UAE (partial), Indonesia (partial)"
   }
 };
@@ -265,14 +265,14 @@ function renderMatrix(){
   const xM=v=>p.l+(v+1)/2*cw;
   const yM=v=>p.t+(1-v)*ch;
   let h='';
-  h+=`<rect x="${p.l}" y="${p.t}" width="${cw/2}" height="${ch/2}" fill="${ql.S1}"/>`;
-  h+=`<rect x="${p.l+cw/2}" y="${p.t}" width="${cw/2}" height="${ch/2}" fill="${ql.S3}"/>`;
-  h+=`<rect x="${p.l}" y="${p.t+ch/2}" width="${cw/2}" height="${ch/2}" fill="${ql.S2}"/>`;
-  h+=`<rect x="${p.l+cw/2}" y="${p.t+ch/2}" width="${cw/2}" height="${ch/2}" fill="${ql.S4}"/>`;
-  [{t:"S1 — Opportunity",s:"Motive + Means",x:p.l+cw/4,y:p.t+18,c:qc.S1},
-   {t:"S3 — Rupee trap",s:"Motive, no means",x:p.l+3*cw/4,y:p.t+18,c:qc.S3},
-   {t:"S2 — Feasible",s:"Means, low motive",x:p.l+cw/4,y:p.t+ch/2+18,c:qc.S2},
-   {t:"S4 — Minimal",s:"Neither",x:p.l+3*cw/4,y:p.t+ch/2+18,c:qc.S4}
+  h+=`<rect x="${p.l}" y="${p.t}" width="${cw/2}" height="${ch/2}" fill="${ql.S3}"/>`;
+  h+=`<rect x="${p.l+cw/2}" y="${p.t}" width="${cw/2}" height="${ch/2}" fill="${ql.S1}"/>`;
+  h+=`<rect x="${p.l}" y="${p.t+ch/2}" width="${cw/2}" height="${ch/2}" fill="${ql.S4}"/>`;
+  h+=`<rect x="${p.l+cw/2}" y="${p.t+ch/2}" width="${cw/2}" height="${ch/2}" fill="${ql.S2}"/>`;
+  [{t:"S3 — Rupee trap",s:"Motive, no means",x:p.l+cw/4,y:p.t+18,c:qc.S3},
+   {t:"S1 — Opportunity",s:"Motive + Means",x:p.l+3*cw/4,y:p.t+18,c:qc.S1},
+   {t:"S4 — Minimal",s:"Neither",x:p.l+cw/4,y:p.t+ch/2+18,c:qc.S4},
+   {t:"S2 — Feasible",s:"Means, low motive",x:p.l+3*cw/4,y:p.t+ch/2+18,c:qc.S2}
   ].forEach(l=>{
     h+=`<text x="${l.x}" y="${l.y}" text-anchor="middle" font-size="11" fill="${l.c}" font-family="IBM Plex Mono,monospace" font-weight="500" opacity="0.9">${l.t}</text>`;
     h+=`<text x="${l.x}" y="${l.y+13}" text-anchor="middle" font-size="10" fill="${l.c}" font-family="IBM Plex Mono,monospace" opacity="0.6">${l.s}</text>`;
