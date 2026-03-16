@@ -1,7 +1,6 @@
 # RTSM Framework — Rupee Trade Settlement Monitor
 
-**Live dashboard → [your-username.github.io/rtsm-framework](https://your-username.github.io/rtsm-framework)**  
-*(Replace `your-username` with your GitHub username after deployment)*
+**Live dashboard → [https://github.com/anisreesuresh/Rupee-Trade-Settlement-Mechanism-Framework]*
 
 ---
 
