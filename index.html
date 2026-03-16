@@ -117,7 +117,7 @@ a{color:#90c0f0}a:hover{color:#f0c060}
     <div class="matrix-wrap"><svg id="msvg" viewBox="0 0 740 430" xmlns="http://www.w3.org/2000/svg"></svg></div>
     <div class="tooltip" id="tt"></div>
   </div>
-  <div class="note"><strong>X-axis:</strong> Rupee absorbability — positive = India trade surplus with partner (partner receives rupees they can spend on Indian imports). Negative = India trade deficit (rupee accumulation risk). <strong>Y-axis:</strong> US trade pressure (tariffs + sanctions exposure). Dot size = bilateral trade volume. Hover for country detail.</div>
+  <div class="note"><strong>X-axis:</strong> US trade exposure — left = High US pressure (tariffs/sanctions), right = Low US pressure. <strong>Y-axis:</strong> Bilateral trade balance — top = Favourable (India surplus, rupees can circulate), bottom = Unfavourable (India deficit, rupee accumulation risk). Dot size = bilateral trade volume. Hover for country detail.</div>
 </div>
 
 <!-- SCENARIOS -->
@@ -260,33 +260,40 @@ function sw(id){
 
 function renderMatrix(){
   const svg=document.getElementById('msvg');
-  const W=740,H=430,p={l:68,r:22,t:28,b:52};
-  const cw=W-p.l-p.r,ch=H-p.t-p.b;
-  const xM=v=>p.l+(v+1)/2*cw;
-  const yM=v=>p.t+(1-v)*ch;
+  const W=740,H=450,p={l:82,r:24,t:36,b:58};
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const cw=W-p.l-p.r, ch=H-p.t-p.b;
+  const midX=p.l+cw/2, midY=p.t+ch/2;
+  // X: US pressure HIGH on LEFT → xM(high Eus) = small x value
+  const xM=v=>p.l+(1-v)*cw;
+  // Y: trade balance FAVOURABLE (positive absorb) on TOP → yM(positive) = small y value
+  const yM=v=>p.t+(1-((v+1)/2))*ch;
   let h='';
-  h+=`<rect x="${p.l}" y="${p.t}" width="${cw/2}" height="${ch/2}" fill="${ql.S3}"/>`;
-  h+=`<rect x="${p.l+cw/2}" y="${p.t}" width="${cw/2}" height="${ch/2}" fill="${ql.S1}"/>`;
-  h+=`<rect x="${p.l}" y="${p.t+ch/2}" width="${cw/2}" height="${ch/2}" fill="${ql.S4}"/>`;
-  h+=`<rect x="${p.l+cw/2}" y="${p.t+ch/2}" width="${cw/2}" height="${ch/2}" fill="${ql.S2}"/>`;
-  [{t:"S3 — Rupee trap",s:"Motive, no means",x:p.l+cw/4,y:p.t+18,c:qc.S3},
-   {t:"S1 — Opportunity",s:"Motive + Means",x:p.l+3*cw/4,y:p.t+18,c:qc.S1},
-   {t:"S4 — Minimal",s:"Neither",x:p.l+cw/4,y:p.t+ch/2+18,c:qc.S4},
-   {t:"S2 — Feasible",s:"Means, low motive",x:p.l+3*cw/4,y:p.t+ch/2+18,c:qc.S2}
+  // S1=top-left, S2=top-right, S3=bottom-left, S4=bottom-right
+  h+=`<rect x="${p.l}"  y="${p.t}"    width="${cw/2}" height="${ch/2}" fill="${ql.S1}"/>`;
+  h+=`<rect x="${midX}" y="${p.t}"    width="${cw/2}" height="${ch/2}" fill="${ql.S2}"/>`;
+  h+=`<rect x="${p.l}"  y="${midY}"   width="${cw/2}" height="${ch/2}" fill="${ql.S3}"/>`;
+  h+=`<rect x="${midX}" y="${midY}"   width="${cw/2}" height="${ch/2}" fill="${ql.S4}"/>`;
+  [{t:"S1 — Opportunity",   s:"High US pressure · India surplus", x:p.l+cw/4,  y:p.t+18,  c:qc.S1},
+   {t:"S2 — Feasible",      s:"Low US pressure · India surplus",  x:midX+cw/4, y:p.t+18,  c:qc.S2},
+   {t:"S3 — Rupee trap",    s:"High US pressure · India deficit", x:p.l+cw/4,  y:midY+18, c:qc.S3},
+   {t:"S4 — Minimal",       s:"Low US pressure · India deficit",  x:midX+cw/4, y:midY+18, c:qc.S4}
   ].forEach(l=>{
     h+=`<text x="${l.x}" y="${l.y}" text-anchor="middle" font-size="11" fill="${l.c}" font-family="IBM Plex Mono,monospace" font-weight="500" opacity="0.9">${l.t}</text>`;
     h+=`<text x="${l.x}" y="${l.y+13}" text-anchor="middle" font-size="10" fill="${l.c}" font-family="IBM Plex Mono,monospace" opacity="0.6">${l.s}</text>`;
   });
-  h+=`<line x1="${p.l+cw/2}" y1="${p.t}" x2="${p.l+cw/2}" y2="${p.t+ch}" stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="5,4"/>`;
-  h+=`<line x1="${p.l}" y1="${p.t+ch/2}" x2="${p.l+cw}" y2="${p.t+ch/2}" stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="5,4"/>`;
-  h+=`<text x="${p.l+cw/2}" y="${H-8}" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.3)" font-family="IBM Plex Mono,monospace">← Low absorbability (India deficit) | Rupee absorbability | High absorbability (India surplus) →</text>`;
-  h+=`<text x="13" y="${p.t+ch/2}" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.3)" font-family="IBM Plex Mono,monospace" transform="rotate(-90,13,${p.t+ch/2})">← Low | US trade pressure | High →</text>`;
-  countries.forEach(c=>{
-    const cx=xM(Math.max(-0.95,Math.min(0.95,c.absorb)));
-    const cy=yM(Math.max(0.04,Math.min(0.96,c.Eus)));
+  h+=`<line x1="${midX}" y1="${p.t}" x2="${midX}" y2="${p.t+ch}" stroke="rgba(255,255,255,0.18)" stroke-width="1" stroke-dasharray="5,4"/>`;
+  h+=`<line x1="${p.l}" y1="${midY}" x2="${p.l+cw}" y2="${midY}" stroke="rgba(255,255,255,0.18)" stroke-width="1" stroke-dasharray="5,4"/>`;
+  h+=`<text x="${p.l+cw/4}"  y="${H-10}" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.3)" font-family="IBM Plex Mono,monospace">← High US exposure</text>`;
+  h+=`<text x="${midX+cw/4}" y="${H-10}" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.3)" font-family="IBM Plex Mono,monospace">Low US exposure →</text>`;
+  h+=`<text x="14" y="${p.t+ch/4}"   text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.3)" font-family="IBM Plex Mono,monospace" transform="rotate(-90,14,${p.t+ch/4})">Favourable trade ↑</text>`;
+  h+=`<text x="14" y="${p.t+3*ch/4}" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.3)" font-family="IBM Plex Mono,monospace" transform="rotate(-90,14,${p.t+3*ch/4})">↓ Unfavourable trade</text>`;
+  countries.forEach((c,i)=>{
+    const cx=xM(Math.max(0.04,Math.min(0.96,c.Eus)));
+    const cy=yM(Math.max(-0.95,Math.min(0.95,c.absorb)));
     const r=Math.max(5,Math.min(16,Math.sqrt(c.vol)*1.55));
-    h+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${qc[c.s]}" opacity="0.72" stroke="${qc[c.s]}" stroke-width="1.5" stroke-opacity="0.4" class="cd" data-i="${countries.indexOf(c)}" style="cursor:pointer"/>`;
-    if(c.vol>12) h+=`<text x="${cx}" y="${cy-r-3}" text-anchor="middle" font-size="10" fill="rgba(240,240,240,0.65)" font-family="IBM Plex Sans,sans-serif">${c.name.split(' ')[0]}</text>`;
+    h+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${qc[c.s]}" opacity="0.75" stroke="${qc[c.s]}" stroke-width="1.5" stroke-opacity="0.4" class="cd" data-i="${i}" style="cursor:pointer"/>`;
+    if(c.vol>10) h+=`<text x="${cx}" y="${cy-r-3}" text-anchor="middle" font-size="10" fill="rgba(240,240,240,0.7)" font-family="IBM Plex Sans,sans-serif">${c.name.split(' ')[0]}</text>`;
   });
   svg.innerHTML=h;
   svg.querySelectorAll('.cd').forEach(d=>{
@@ -296,17 +303,17 @@ function renderMatrix(){
       const sur=c.surplus>=0?`+US$${c.surplus.toFixed(1)}bn`:`-US$${Math.abs(c.surplus).toFixed(1)}bn`;
       tt.innerHTML=`<div class="tt-name">${c.name} <span style="font-size:11px;color:var(--text2);font-weight:400">${c.s}</span></div>
         <div class="tt-row"><span>US pressure (E_US)</span><span class="tt-val">${c.Eus.toFixed(2)}</span></div>
-        <div class="tt-row"><span>Absorbability</span><span class="tt-val">${c.absorb.toFixed(2)}</span></div>
+        <div class="tt-row"><span>Trade balance</span><span class="tt-val">${c.absorb.toFixed(2)}</span></div>
         <div class="tt-row"><span>India surplus</span><span class="tt-val" style="color:${c.surplus>=0?'#80d0a0':'#e08080'}">${sur}</span></div>
         <div class="tt-row"><span>US tariff</span><span class="tt-val">${c.total}%${c.sanction?' (sanctioned)':''}</span></div>
         ${c.note?`<div class="tt-note">${c.note}</div>`:''}`;
       tt.style.display='block';
       const wr=svg.parentElement.getBoundingClientRect();
       const er=e.target.getBoundingClientRect();
-      let lf=er.left-wr.left+18,tp=er.top-wr.top-10;
+      let lf=er.left-wr.left+18, tp=er.top-wr.top-10;
       if(lf+250>wr.width) lf=er.left-wr.left-260;
       if(tp<0) tp=4;
-      tt.style.left=lf+'px';tt.style.top=tp+'px';
+      tt.style.left=lf+'px'; tt.style.top=tp+'px';
     });
     d.addEventListener('mouseleave',()=>document.getElementById('tt').style.display='none');
   });
