@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>RTSM Framework — Rupee Trade Settlement Monitor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --bg:#0d0f14;--bg2:#141720;--bg3:#1c2030;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
+  --text:#e8eaf0;--text2:#8b90a0;--text3:#555a6a;
+  --s1:#639922;--s1l:rgba(99,153,34,0.10);
+  --s2:#378ADD;--s2l:rgba(55,138,221,0.10);
+  --s3:#c05050;--s3l:rgba(192,80,80,0.10);
+  --s4:#888780;--s4l:rgba(136,135,128,0.10);
+  --font:'IBM Plex Sans',sans-serif;--mono:'IBM Plex Mono',monospace;
+  --r:6px;--r2:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.6;min-height:100vh}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:20px 32px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px}
+.header-title{font-size:20px;font-weight:600;letter-spacing:-0.3px}
+.header-title span{color:#f0c060}
+.header-sub{font-size:12px;color:var(--text2);margin-top:3px;font-family:var(--mono)}
+.header-badge{background:rgba(240,192,96,0.10);border:1px solid rgba(240,192,96,0.22);color:#f0c060;font-size:11px;font-family:var(--mono);padding:4px 10px;border-radius:4px;margin-top:8px;display:inline-block}
+.container{max-width:1200px;margin:0 auto;padding:28px 32px}
+@media(max-width:700px){.container{padding:16px}}
+.tabs{display:flex;gap:0;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:24px;flex-wrap:wrap}
+.tab{padding:9px 20px;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--text2);border:none;border-right:1px solid var(--border);transition:all .15s;font-family:var(--font)}
+.tab:last-child{border-right:none}
+.tab:hover{background:var(--bg3);color:var(--text)}
+.tab.active{background:var(--bg3);color:#f0c060;font-weight:600}
+.panel{display:none}.panel.active{display:block}
+.legend{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:14px}
+.leg{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text2)}
+.leg-dot{width:10px;height:10px;border-radius:50%}
+.matrix-outer{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;position:relative}
+.matrix-wrap{position:relative;width:100%;padding-bottom:57%}
+.matrix-wrap svg{position:absolute;top:0;left:0;width:100%;height:100%}
+.tooltip{position:absolute;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);padding:12px 16px;font-size:12px;pointer-events:none;display:none;z-index:20;max-width:240px}
+.tooltip .tt-name{font-weight:600;font-size:13px;margin-bottom:8px;color:var(--text);font-family:var(--mono)}
+.tooltip .tt-row{display:flex;justify-content:space-between;gap:12px;margin-bottom:4px;color:var(--text2)}
+.tooltip .tt-val{font-weight:500;color:var(--text);font-family:var(--mono);font-size:12px}
+.tooltip .tt-note{font-size:11px;color:var(--text2);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);line-height:1.5}
+.note{font-size:12px;color:var(--text2);margin-top:12px;padding:10px 16px;border-left:2px solid rgba(240,192,96,0.3);background:rgba(240,192,96,0.03);line-height:1.7}
+.note strong{color:#f0c060}
+.sc-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:20px}
+@media(max-width:600px){.sc-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.sc-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:16px;cursor:pointer;transition:border-color .15s}
+.sc-card:hover{border-color:var(--border2)}
+.sc-num{font-size:11px;font-weight:600;margin-bottom:6px;font-family:var(--mono)}
+.sc-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:6px;line-height:1.4}
+.sc-sub{font-size:12px;color:var(--text2);margin-bottom:8px}
+.sc-tag{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px;font-family:var(--mono)}
+.detail-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:20px 24px;margin-bottom:16px}
+.detail-box h3{font-size:14px;font-weight:600;margin-bottom:12px}
+.detail-box p{font-size:13px;color:var(--text2);line-height:1.75;margin-bottom:10px}
+.detail-box p:last-child{margin-bottom:0}
+.tbl-wrap{overflow-x:auto;border-radius:var(--r2);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead tr{background:var(--bg3)}
+th{text-align:left;font-size:11px;font-weight:500;color:var(--text2);padding:10px 14px;border-bottom:1px solid var(--border);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap}
+td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3)}
+.badge{display:inline-block;padding:2px 9px;border-radius:4px;font-size:11px;font-weight:600;font-family:var(--mono)}
+.tbar{height:5px;border-radius:3px;background:rgba(255,255,255,0.07);overflow:hidden;margin-top:5px;width:110px}
+.tbar-fill{height:100%;border-radius:3px}
+.filter-row{display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.filter-row label{font-size:12px;color:var(--text2);font-family:var(--mono)}
+select{font-family:var(--mono);font-size:12px;padding:7px 12px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg3);color:var(--text);cursor:pointer;outline:none}
+.formula-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:20px 24px;margin-bottom:16px;line-height:1.9}
+.formula-box h3{font-size:13px;font-weight:600;color:#f0c060;font-family:var(--mono);margin-bottom:14px;text-transform:uppercase;letter-spacing:0.5px}
+.formula-main{font-family:var(--mono);font-size:13px;color:#f0c060;background:rgba(240,192,96,0.06);border:1px solid rgba(240,192,96,0.18);border-radius:var(--r);padding:14px 18px;margin:12px 0;line-height:1.8}
+.var-row{display:grid;grid-template-columns:140px 1fr;gap:8px;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border);color:var(--text2)}
+.var-row:last-child{border-bottom:none}
+.var-row .vn{color:#90c0f0;font-family:var(--mono)}
+.tl-item{display:flex;gap:14px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;align-items:flex-start}
+.tl-item:last-child{border-bottom:none}
+.tl-date{font-family:var(--mono);font-size:11px;color:#f0c060;min-width:110px;padding-top:2px;flex-shrink:0}
+.tl-text{color:var(--text2);line-height:1.6}
+.hl{color:var(--text);font-weight:600}
+footer{background:var(--bg2);border-top:1px solid var(--border);padding:20px 32px;font-size:12px;color:var(--text2);font-family:var(--mono);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:48px}
+a{color:#90c0f0}a:hover{color:#f0c060}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="header-title"><span>RTSM</span> · Rupee Trade Settlement Monitor</div>
+    <div class="header-sub">2×2 Scenario Framework · US Trade Pressure × Rupee Absorbability</div>
+    <div class="header-badge">Updated March 2026 · Axes revised per corrected quadrant logic</div>
+  </div>
+</header>
+
+<div class="container">
+<div class="tabs">
+  <button class="tab active" onclick="sw('matrix')">2×2 Matrix</button>
+  <button class="tab" onclick="sw('scenarios')">Scenario detail</button>
+  <button class="tab" onclick="sw('table')">Country data</button>
+  <button class="tab" onclick="sw('formula')">E_US index + tariffs</button>
+</div>
+
+<!-- MATRIX -->
+<div id="p-matrix" class="panel active">
+  <div class="legend">
+    <span class="leg"><span class="leg-dot" style="background:var(--s1)"></span>S1 — High US pressure, High absorbability (Opportunity)</span>
+    <span class="leg"><span class="leg-dot" style="background:var(--s2)"></span>S2 — Low US pressure, High absorbability (Feasible, low motive)</span>
+    <span class="leg"><span class="leg-dot" style="background:var(--s3)"></span>S3 — High US pressure, Low absorbability (Rupee trap risk)</span>
+    <span class="leg"><span class="leg-dot" style="background:var(--s4)"></span>S4 — Low US pressure, Low absorbability (Minimal case)</span>
+  </div>
+  <div class="matrix-outer">
+    <div class="matrix-wrap"><svg id="msvg" viewBox="0 0 740 430" xmlns="http://www.w3.org/2000/svg"></svg></div>
+    <div class="tooltip" id="tt"></div>
+  </div>
+  <div class="note"><strong>X-axis:</strong> Rupee absorbability — positive = India trade surplus with partner (partner receives rupees they can spend on Indian imports). Negative = India trade deficit (rupee accumulation risk). <strong>Y-axis:</strong> US trade pressure (tariffs + sanctions exposure). Dot size = bilateral trade volume. Hover for country detail.</div>
+</div>
+
+<!-- SCENARIOS -->
+<div id="p-scenarios" class="panel">
+  <div class="sc-grid" id="sc-cards"></div>
+  <div id="sc-detail"></div>
+</div>
+
+<!-- TABLE -->
+<div id="p-table" class="panel">
+  <div class="filter-row">
+    <label>Scenario:</label>
+    <select id="sf" onchange="rt()">
+      <option value="all">All countries</option>
+      <option value="S1">S1 — High pressure, High absorbability</option>
+      <option value="S2">S2 — Low pressure, High absorbability</option>
+      <option value="S3">S3 — High pressure, Low absorbability</option>
+      <option value="S4">S4 — Low pressure, Low absorbability</option>
+    </select>
+    <label>Sort by:</label>
+    <select id="ss" onchange="rt()">
+      <option value="vol">Trade volume</option>
+      <option value="Eus">US pressure</option>
+      <option value="absorb">Absorbability</option>
+      <option value="name">Name</option>
+    </select>
+  </div>
+  <div class="tbl-wrap">
+    <table><thead><tr>
+      <th>Country</th><th>Scenario</th><th>E_US (US pressure)</th><th>Absorbability</th>
+      <th>India surplus</th><th>US tariff</th><th>RTSM constraint</th>
+    </tr></thead>
+    <tbody id="tb"></tbody></table>
+  </div>
+</div>
+
+<!-- FORMULA -->
+<div id="p-formula" class="panel">
+  <div class="formula-box">
+    <h3>Axis 1 — E_US composite index (US trade pressure)</h3>
+    <div class="formula-main">E_US,i = w1·T_i + w2·S_US,i + w3·F_i + w4·RT_i + w5·(1 − USD_inv,i)</div>
+    <div class="var-row"><span class="vn">T_i</span><span>Share of exports under Section 301/232 tariffs (USTR data)</span></div>
+    <div class="var-row"><span class="vn">S_US,i</span><span>Bilateral US trade / GDP_i — degree of US economic reliance</span></div>
+    <div class="var-row"><span class="vn">F_i</span><span>OFAC sanctions flag — binary 0/1 (Russia=1, Iran=1)</span></div>
+    <div class="var-row"><span class="vn">RT_i ★</span><span><strong style="color:#90c0f0">Trump reciprocal tariff rate</strong> (normalised 0–1). Highest-weight variable. Includes Liberation Day rates, Russia-oil penalties, Sec.122 post-IEEPA.</span></div>
+    <div class="var-row"><span class="vn">USD_inv,i</span><span>Inverted USD invoicing share. Lower USD use = higher rupee incentive.</span></div>
+    <div style="margin-top:12px;font-size:12px;color:var(--text2)">Weights: w1=0.20 · w2=0.15 · w3=0.25 · <strong style="color:#90c0f0">w4=0.30</strong> · w5=0.10</div>
+  </div>
+  <div class="formula-box">
+    <h3>Axis 2 — Absorbability index A_i (rupee usability)</h3>
+    <div class="formula-main">A_i = f(B_i, C_i, R_i, RA_i)<br>B_i = (X_IN,i − M_IN,i) / ((X_IN,i + M_IN,i)/2)</div>
+    <div class="var-row"><span class="vn">B_i</span><span>Normalised trade balance. Positive = India surplus = partner accumulates rupees they can spend back on Indian goods. This is the primary absorbability signal.</span></div>
+    <div class="var-row"><span class="vn">C_i</span><span>Correspondent banking links (Vostro/Nostro count, BIS/SWIFT data). Infrastructure readiness for rupee settlement.</span></div>
+    <div class="var-row"><span class="vn">R_i</span><span>Existing rupee balances held by partner (RBI SRVA reports). Current rupee liquidity stock.</span></div>
+    <div class="var-row"><span class="vn">RA_i</span><span>Rupee asset availability: Masala bonds, INR trade credit access. Determines if surplus rupees have investable outlets.</span></div>
+    <div style="margin-top:12px;font-size:12px;color:var(--text2)">Threshold: A_i &gt; 0.1 = High absorbability (S1/S2). A_i &lt; −0.1 = Low absorbability (S3/S4 — rupee trap risk).</div>
+  </div>
+  <div class="formula-box">
+    <h3>Key tariff events · April 2025 – March 2026</h3>
+    <div class="tl-item"><span class="tl-date">Apr 2, 2025</span><span class="tl-text"><span class="hl">Liberation Day.</span> 10% universal baseline + country-specific reciprocals under IEEPA. India 26%, Bangladesh 35%, Sri Lanka 44%, Cambodia 49%, Vietnam 19%.</span></div>
+    <div class="tl-item"><span class="tl-date">Apr 9, 2025</span><span class="tl-text">90-day pause for all except China (raised to 145%). India held at 26% reciprocal during pause.</span></div>
+    <div class="tl-item"><span class="tl-date">Jul–Aug 2025</span><span class="tl-text">Rates finalised at pause-end. India 25%. <span class="hl">Additional 25% punitive on India for Russian oil purchases → total effective 50%.</span> E_US for India surges sharply.</span></div>
+    <div class="tl-item"><span class="tl-date">Nov 2025</span><span class="tl-text">US–China 90-day trade deal. Rate reduced from 145% → ~30%.</span></div>
+    <div class="tl-item"><span class="tl-date">Feb 2026</span><span class="tl-text"><span class="hl">Supreme Court strikes down IEEPA.</span> Section 122 (Trade Expansion Act) 10–15% baseline replaces it. <span class="hl">US–India deal: reciprocal → 18%, Russia-oil penalty lifted.</span></span></div>
+    <div class="tl-item"><span class="tl-date">Mar 12, 2026</span><span class="tl-text">USTR Section 301 forced-labour probe opened on 60+ countries — India, Bangladesh, Sri Lanka, UAE, Saudi Arabia all included. New latent tariff risk vector.</span></div>
+  </div>
+</div>
+</div>
+
+<footer>
+  <span>RTSM Framework · v2.0 · March 2026 · Corrected quadrant logic</span>
+  <span>Data: RBI · IMF DOTS · USTR · UN Comtrade · US Treasury OFAC · WTO</span>
+</footer>
+
+<script>
+const qc={S1:"#639922",S2:"#378ADD",S3:"#c05050",S4:"#888780"};
+const ql={S1:"rgba(99,153,34,0.10)",S2:"rgba(55,138,221,0.10)",S3:"rgba(192,80,80,0.10)",S4:"rgba(136,135,128,0.10)"};
+
+const scMeta={
+  S1:{short:"Motive + Means",title:"High US pressure · High absorbability",tag:"Opportunity quadrant"},
+  S2:{short:"Means, low motive",title:"Low US pressure · High absorbability",tag:"Feasibility quadrant"},
+  S3:{short:"Motive, no means",title:"High US pressure · Low absorbability",tag:"Accumulation risk"},
+  S4:{short:"Neither",title:"Low US pressure · Low absorbability",tag:"Low feasibility"}
+};
+
+const scDetails={
+  S1:{
+    p1:"Countries here have both a strong incentive (US tariff or sanctions pressure drives dollar avoidance) and the operational means (India runs a trade surplus, so partner countries accumulate rupees they can actually spend back on Indian imports). This is the ideal adoption quadrant — but currently sparse at the major-economy level.",
+    p2:"Turkey is the clearest illustrative example: it faced US steel tariffs and holds a US$2.7bn India trade surplus (2024–25), giving it both motive and means. Vietnam (19% reciprocal tariff, India export surplus) and Cambodia (49% tariff, highest non-sanctions rate) also qualify. These countries have an incentive to exit dollar settlement and a workable rupee recycling pathway. The quadrant is called an 'opportunity' because no large economy yet fully occupies it — most major economies either face US pressure but have India deficits (S3) or have India surpluses but face no US pressure (S2).",
+    countries:"Turkey, Vietnam, Cambodia, Myanmar, Malaysia (partial), Thailand (partial), Pakistan (partial)"
+  },
+  S2:{
+    p1:"High rupee absorbability but low incentive to exit the dollar. India runs significant trade surpluses with these partners, meaning they receive rupees through Indian export payments and have natural channels to redeploy them on further Indian imports. However, without a strong US tariff push factor, motivation for active RTSM adoption is limited.",
+    p2:"Bangladesh (India surplus US$9.3bn, 2023–24), Sri Lanka (US$2.69bn surplus, Vostro accounts already active), Nepal, Bhutan. These are India's closest neighbours and friendly partners with established or near-ready RTSM infrastructure. The key insight is that as global dollar de-monopolisation accelerates — especially if Liberation Day-style tariff shocks become persistent — demand in this quadrant will rise even without direct US pressure on these countries. The policy lever is converting passive feasibility into active adoption: Masala bonds, rupee trade credit, deeper Vostro networks.",
+    countries:"Bangladesh, Sri Lanka, Nepal, Bhutan, Egypt, Kenya, Turkey (moving toward S1)"
+  },
+  S3:{
+    p1:"High US pressure creates strong incentive to avoid dollars — but India runs a trade deficit with these partners, meaning they accumulate rupees from Indian payments (India pays in rupees for imports) that they have limited ability to deploy on Indian exports. This is the rupee accumulation trap: motivation is high, operational feasibility is structurally constrained.",
+    p2:"Russia is the paradigmatic case: India imported ~US$61.4bn from Russia in 2024 with a US$57bn deficit. Russia faces Western sanctions and has actively pushed for INR settlement, but has accumulated large rupee balances it cannot easily spend — India's export basket to Russia is limited. Iran similarly has strong sanctions-driven incentive but minimal India export absorption capacity. China also falls here despite its scale (India deficit ~US$85bn). The policy fix for this quadrant is creating rupee asset outlets: sovereign bond market access, INR-denominated trade financing, and expanding Indian export categories to these countries.",
+    countries:"Russia, Iran, China (partial), Saudi Arabia (partial)"
+  },
+  S4:{
+    p1:"The minimal-case quadrant: low US pressure means no incentive to exit the dollar, and low or negative rupee absorbability (India runs trade deficits with these partners) means RTSM settlement isn't operationally attractive. Both the demand and supply conditions for rupee adoption are absent.",
+    p2:"Saudi Arabia and South Korea are the clearest examples. Saudi Arabia maintains the petrodollar arrangement, has strong US security ties, and India runs a large energy import deficit (~US$32bn). South Korea similarly has deep US alliance ties and a balanced-to-negative India trade position. The UAE is partially in this quadrant (India import deficit, strong US financial links). These countries might transact marginally in rupees for specific narrow corridors but RTSM infrastructure investment here has very low returns and policy relevance.",
+    countries:"Saudi Arabia, South Korea, UAE (partial), Indonesia (partial)"
+  }
+};
+
+const countries=[
+  {name:"Turkey",     Eus:0.55,absorb:0.62, B:0.45, surplus:2.7,  total:10, sanction:0,s:"S1",vol:14,note:"US$2.7bn India surplus 2024–25; US steel tariffs; illustrative S1 example"},
+  {name:"Vietnam",    Eus:0.68,absorb:0.55, B:0.55, surplus:4.2,  total:19, sanction:0,s:"S1",vol:18,note:"19% reciprocal; India export surplus; active ASEAN-India trade corridor"},
+  {name:"Cambodia",   Eus:0.72,absorb:0.60, B:0.50, surplus:1.1,  total:49, sanction:0,s:"S1",vol:3, note:"49% tariff — highest non-sanctions in ASEAN; India export surplus"},
+  {name:"Myanmar",    Eus:0.48,absorb:0.50, B:0.42, surplus:1.8,  total:40, sanction:0,s:"S1",vol:4, note:"40% reciprocal; India surplus; political constraints add complexity"},
+  {name:"Malaysia",   Eus:0.42,absorb:0.30, B:0.18, surplus:2.1,  total:24, sanction:0,s:"S1",vol:15,note:"24% tariff; India marginal surplus; borderline S1"},
+  {name:"Thailand",   Eus:0.38,absorb:0.25, B:0.10, surplus:1.2,  total:36, sanction:0,s:"S1",vol:14,note:"36% tariff; borderline S1/S2; India modest surplus"},
+  {name:"Pakistan",   Eus:0.35,absorb:0.35, B:0.28, surplus:1.8,  total:19, sanction:0,s:"S1",vol:7, note:"India surplus; but political constraints severely limit RTSM prospects"},
+  {name:"Bangladesh", Eus:0.38,absorb:0.82, B:0.78, surplus:9.3,  total:20, sanction:0,s:"S2",vol:13,note:"India surplus US$9.3bn (2023–24); SRVA Vostro accounts active"},
+  {name:"Sri Lanka",  Eus:0.28,absorb:0.70, B:0.62, surplus:2.69, total:44, sanction:0,s:"S2",vol:8, note:"India surplus US$2.69bn (2023–24); rupee Vostro accounts opened"},
+  {name:"Nepal",      Eus:0.10,absorb:0.88, B:0.85, surplus:8.0,  total:10, sanction:0,s:"S2",vol:5, note:"Highest India export surplus ratio; quasi-peg to INR historically"},
+  {name:"Bhutan",     Eus:0.06,absorb:0.92, B:0.90, surplus:1.2,  total:10, sanction:0,s:"S2",vol:2, note:"Near-currency union with India; highest absorbability in framework"},
+  {name:"Egypt",      Eus:0.18,absorb:0.40, B:0.22, surplus:3.1,  total:10, sanction:0,s:"S2",vol:8, note:"India exports pharma and machinery; moderate absorbability"},
+  {name:"Kenya",      Eus:0.12,absorb:0.52, B:0.38, surplus:1.4,  total:10, sanction:0,s:"S2",vol:4, note:"India surplus; East Africa trade expansion corridor"},
+  {name:"Russia",     Eus:0.92,absorb:-0.88,B:-0.90,surplus:-57.0,total:100,sanction:1,s:"S3",vol:62,note:"India deficit US$57bn (2024); paradigmatic rupee accumulation trap"},
+  {name:"Iran",       Eus:0.96,absorb:-0.35,B:-0.28,surplus:-3.2, total:100,sanction:1,s:"S3",vol:6, note:"Full OFAC sanctions; high motive, very limited India export absorption"},
+  {name:"China",      Eus:0.80,absorb:-0.22,B:-0.18,surplus:-85.0,total:30, sanction:0,s:"S3",vol:92,note:"India deficit ~US$85bn; largest rupee accumulation problem; Nov 2025 deal rate 30%"},
+  {name:"South Korea",Eus:0.22,absorb:-0.30,B:-0.22,surplus:-10.2,total:25, sanction:0,s:"S4",vol:28,note:"Strong US alliance; India runs import deficit; low RTSM incentive"},
+  {name:"Saudi Arabia",Eus:0.18,absorb:-0.72,B:-0.68,surplus:-32.0,total:10,sanction:0,s:"S4",vol:45,note:"Petrodollar anchor; India energy deficit ~US$32bn; minimal RTSM case"},
+  {name:"UAE",        Eus:0.20,absorb:-0.35,B:-0.30,surplus:-12.0,total:10, sanction:0,s:"S4",vol:36,note:"India import deficit; dollar-anchored financial system"},
+  {name:"Indonesia",  Eus:0.30,absorb:-0.15,B:-0.12,surplus:-3.5, total:19, sanction:0,s:"S4",vol:22,note:"Marginal India deficit; moderate US tariff exposure; borderline S3/S4"},
+];
+
+function sw(id){
+  ['matrix','scenarios','table','formula'].forEach(x=>{
+    document.querySelector(`[onclick="sw('${x}')"]`).classList.toggle('active',x===id);
+    document.getElementById('p-'+x).classList.toggle('active',x===id);
+  });
+  if(id==='table') rt();
+  if(id==='scenarios') renderSc();
+}
+
+function renderMatrix(){
+  const svg=document.getElementById('msvg');
+  const W=740,H=430,p={l:68,r:22,t:28,b:52};
+  const cw=W-p.l-p.r,ch=H-p.t-p.b;
+  const xM=v=>p.l+(v+1)/2*cw;
+  const yM=v=>p.t+(1-v)*ch;
+  let h='';
+  h+=`<rect x="${p.l}" y="${p.t}" width="${cw/2}" height="${ch/2}" fill="${ql.S1}"/>`;
+  h+=`<rect x="${p.l+cw/2}" y="${p.t}" width="${cw/2}" height="${ch/2}" fill="${ql.S3}"/>`;
+  h+=`<rect x="${p.l}" y="${p.t+ch/2}" width="${cw/2}" height="${ch/2}" fill="${ql.S2}"/>`;
+  h+=`<rect x="${p.l+cw/2}" y="${p.t+ch/2}" width="${cw/2}" height="${ch/2}" fill="${ql.S4}"/>`;
+  [{t:"S1 — Opportunity",s:"Motive + Means",x:p.l+cw/4,y:p.t+18,c:qc.S1},
+   {t:"S3 — Rupee trap",s:"Motive, no means",x:p.l+3*cw/4,y:p.t+18,c:qc.S3},
+   {t:"S2 — Feasible",s:"Means, low motive",x:p.l+cw/4,y:p.t+ch/2+18,c:qc.S2},
+   {t:"S4 — Minimal",s:"Neither",x:p.l+3*cw/4,y:p.t+ch/2+18,c:qc.S4}
+  ].forEach(l=>{
+    h+=`<text x="${l.x}" y="${l.y}" text-anchor="middle" font-size="11" fill="${l.c}" font-family="IBM Plex Mono,monospace" font-weight="500" opacity="0.9">${l.t}</text>`;
+    h+=`<text x="${l.x}" y="${l.y+13}" text-anchor="middle" font-size="10" fill="${l.c}" font-family="IBM Plex Mono,monospace" opacity="0.6">${l.s}</text>`;
+  });
+  h+=`<line x1="${p.l+cw/2}" y1="${p.t}" x2="${p.l+cw/2}" y2="${p.t+ch}" stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="5,4"/>`;
+  h+=`<line x1="${p.l}" y1="${p.t+ch/2}" x2="${p.l+cw}" y2="${p.t+ch/2}" stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="5,4"/>`;
+  h+=`<text x="${p.l+cw/2}" y="${H-8}" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.3)" font-family="IBM Plex Mono,monospace">← Low absorbability (India deficit) | Rupee absorbability | High absorbability (India surplus) →</text>`;
+  h+=`<text x="13" y="${p.t+ch/2}" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.3)" font-family="IBM Plex Mono,monospace" transform="rotate(-90,13,${p.t+ch/2})">← Low | US trade pressure | High →</text>`;
+  countries.forEach(c=>{
+    const cx=xM(Math.max(-0.95,Math.min(0.95,c.absorb)));
+    const cy=yM(Math.max(0.04,Math.min(0.96,c.Eus)));
+    const r=Math.max(5,Math.min(16,Math.sqrt(c.vol)*1.55));
+    h+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${qc[c.s]}" opacity="0.72" stroke="${qc[c.s]}" stroke-width="1.5" stroke-opacity="0.4" class="cd" data-i="${countries.indexOf(c)}" style="cursor:pointer"/>`;
+    if(c.vol>12) h+=`<text x="${cx}" y="${cy-r-3}" text-anchor="middle" font-size="10" fill="rgba(240,240,240,0.65)" font-family="IBM Plex Sans,sans-serif">${c.name.split(' ')[0]}</text>`;
+  });
+  svg.innerHTML=h;
+  svg.querySelectorAll('.cd').forEach(d=>{
+    d.addEventListener('mouseenter',e=>{
+      const c=countries[+d.dataset.i];
+      const tt=document.getElementById('tt');
+      const sur=c.surplus>=0?`+US$${c.surplus.toFixed(1)}bn`:`-US$${Math.abs(c.surplus).toFixed(1)}bn`;
+      tt.innerHTML=`<div class="tt-name">${c.name} <span style="font-size:11px;color:var(--text2);font-weight:400">${c.s}</span></div>
+        <div class="tt-row"><span>US pressure (E_US)</span><span class="tt-val">${c.Eus.toFixed(2)}</span></div>
+        <div class="tt-row"><span>Absorbability</span><span class="tt-val">${c.absorb.toFixed(2)}</span></div>
+        <div class="tt-row"><span>India surplus</span><span class="tt-val" style="color:${c.surplus>=0?'#80d0a0':'#e08080'}">${sur}</span></div>
+        <div class="tt-row"><span>US tariff</span><span class="tt-val">${c.total}%${c.sanction?' (sanctioned)':''}</span></div>
+        ${c.note?`<div class="tt-note">${c.note}</div>`:''}`;
+      tt.style.display='block';
+      const wr=svg.parentElement.getBoundingClientRect();
+      const er=e.target.getBoundingClientRect();
+      let lf=er.left-wr.left+18,tp=er.top-wr.top-10;
+      if(lf+250>wr.width) lf=er.left-wr.left-260;
+      if(tp<0) tp=4;
+      tt.style.left=lf+'px';tt.style.top=tp+'px';
+    });
+    d.addEventListener('mouseleave',()=>document.getElementById('tt').style.display='none');
+  });
+}
+
+window._sel='S1';
+function renderSc(){
+  document.getElementById('sc-cards').innerHTML=['S1','S2','S3','S4'].map(s=>`
+    <div class="sc-card" style="border-color:${window._sel===s?qc[s]:'var(--border)'}" onclick="selS('${s}')">
+      <div class="sc-num" style="color:${qc[s]}">${s}</div>
+      <div class="sc-title">${scMeta[s].short}</div>
+      <div class="sc-tag" style="background:${ql[s]};color:${qc[s]}">${scMeta[s].tag}</div>
+    </div>`).join('');
+  const d=scDetails[window._sel];
+  const c=qc[window._sel];
+  document.getElementById('sc-detail').innerHTML=`
+    <div class="detail-box" style="border-color:${c}30">
+      <h3 style="color:${c}">${window._sel} — ${scMeta[window._sel].title}</h3>
+      <p>${d.p1}</p><p>${d.p2}</p>
+      <p style="font-size:12px;color:var(--text2)"><strong style="color:var(--text);font-weight:500">Countries in this scenario:</strong> ${d.countries}</p>
+    </div>`;
+}
+window.selS=function(s){window._sel=s;renderSc()};
+
+function rt(){
+  const f=document.getElementById('sf').value,ss=document.getElementById('ss').value;
+  let rows=countries.filter(c=>f==='all'||c.s===f);
+  if(ss==='name') rows.sort((a,b)=>a.name.localeCompare(b.name));
+  else rows.sort((a,b)=>b[ss]-a[ss]);
+  const constraint={S1:"Needs deeper Vostros + bilateral deals",S2:"Low motive; needs policy incentives",S3:"Rupee accumulation trap — needs asset outlets",S4:"No motive or operational means"};
+  document.getElementById('tb').innerHTML=rows.map(c=>{
+    const sur=c.surplus>=0?`+$${c.surplus.toFixed(1)}bn`:`-$${Math.abs(c.surplus).toFixed(1)}bn`;
+    return `<tr>
+      <td style="font-weight:600">${c.name}</td>
+      <td><span class="badge" style="background:${ql[c.s]};color:${qc[c.s]}">${c.s}</span></td>
+      <td style="font-family:var(--mono)">${c.Eus.toFixed(2)}</td>
+      <td style="font-family:var(--mono)">${c.absorb.toFixed(2)}</td>
+      <td style="font-family:var(--mono);color:${c.surplus>=0?'#80d0a0':'#e08080'};font-weight:500">${sur}</td>
+      <td>${c.sanction?'<span style="color:#e08080;font-weight:600">Sanctions</span>':c.total+'%'}
+        <div class="tbar"><div class="tbar-fill" style="width:${Math.min(100,c.total)}%;background:${qc[c.s]}"></div></div>
+      </td>
+      <td style="font-size:12px;color:var(--text2)">${constraint[c.s]}</td>
+    </tr>`;}).join('');
+}
+
+renderMatrix();
+renderSc();
+</script>
+</body>
+</html>
